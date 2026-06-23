@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNB Français - Entraînement à la réécriture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <style>
+        /* ----- Fond cahier SEYES ----- */
+        body {
+            background-color: #fef9f0;
+            background-image: 
+                repeating-linear-gradient(
+                    transparent,
+                    transparent 29px,
+                    #d5e3f0 29px,
+                    #d5e3f0 30px
+                ),
+                repeating-linear-gradient(
+                    to right,
+                    transparent,
+                    transparent 20px,
+                    #f0d5d5 20px,
+                    #f0d5d5 21px
+                );
+            background-size: 100% 30px, 100% 100%;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 2rem 1rem;
+            font-family: 'Playfair Display', serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* pour que le cahier ne déborde pas sous le container */
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(1px);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem;
+            border-top: 5px solid #b8860b;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        /* ----- en‑tête avec chronomètres ----- */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed #d0c8b8;
+        }
+
+        .timers {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.95rem;
+            color: #3a3a3a;
+        }
+        .timers span {
+            font-weight: 600;
+            color: #1a252f;
+        }
+        .timers .total { color: #b8860b; }
+
+        .header-status {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #b8860b;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .exercice-box { margin-bottom: 2rem; }
+
+        .consigne {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .texte-source {
+            font-size: 1.15rem;
+            padding: 1.5rem;
+            background: #fdfbf7;
+            border-left: 4px solid #b8860b;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .reference {
+            font-style: italic;
+            color: #666;
+            text-align: right;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            font-family: inherit;
+            font-size: 1.1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+            transition: border-color 0.3s;
+            background: #fffcf8;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #b8860b;
+            box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.1);
+        }
+
+        .btn {
+            display: inline-block;
+            background: #2c3e50;
+            color: white;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn:hover { background: #1a252f; }
+        .btn:active { transform: translateY(2px); }
+        .btn-accent { background: #b8860b; }
+        .btn-accent:hover { background: #9a7009; }
+
+        .feedback-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            display: none;
+        }
+
+        .diff-text { font-size: 1.1rem; line-height: 1.8; margin-bottom: 1rem; }
+        .diff-added { color: #27ae60; font-weight: bold; text-decoration: underline; }
+        .diff-removed { color: #c0392b; text-decoration: line-through; margin-right: 0.5rem; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .pastille {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: -3px;
+        }
+
+        /* ---- pied de page ---- */
+        .footer-credit {
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid #e0d8ce;
+            padding-top: 1.2rem;
+        }
+
+        /* ---- page d'accueil (intro) ---- */
+        .intro-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1a252f;
+            margin-bottom: 1rem;
+        }
+        .intro-accroche {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 1.8rem;
+            padding: 0.8rem 1.2rem;
+            background: #f6f2eb;
+            border-radius: 8px;
+            border-left: 4px solid #b8860b;
+        }
+        .intro-parts {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0 2.5rem 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem 2rem;
+        }
+        .intro-parts li {
+            font-size: 1.1rem;
+            padding: 0.4rem 0.8rem;
+            border-bottom: 1px dashed #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        .intro-parts li strong { color: #1a252f; }
+        .intro-parts li .badge {
+            background: #b8860b;
+            color: white;
+            font-size: 0.8rem;
+            padding: 0.1rem 0.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            .intro-parts { grid-template-columns: 1fr; }
+            .intro-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Écran d'introduction -->
+    <div id="screen-intro" class="screen active">
+        <h1 class="intro-title">Entraînement DNB à la réécriture</h1>
+        <div class="intro-accroche">
+            Chaque exercice vous demande de transformer un court passage littéraire selon une consigne précise. Le score total est calculé sur 200 points.
+        </div>
+        <p style="font-weight:600; color:#2c3e50; margin-bottom:0.5rem;">Sommaire des parties :</p>
+        <ul class="intro-parts">
+            <li><strong>Genre / Nombre / Personne</strong> <span class="badge">15 exercices</span></li>
+            <li><strong>Temps verbaux</strong> <span class="badge">15 exercices</span></li>
+            <li><strong>Voix Active / Passive</strong> <span class="badge">10 exercices</span></li>
+            <li><strong>Combiné (Temps + Personne)</strong> <span class="badge">10 exercices</span></li>
+        </ul>
+        <button class="btn btn-accent" onclick="app.start()">Démarrer l'évaluation</button>
+    </div>
+
+    <!-- Écran d'exercice -->
+    <div id="screen-exercise" class="screen">
+        <!-- En‑tête avec chronomètres -->
+        <div class="header-top">
+            <div class="timers">
+                <div>⏱️ Exercice : <span id="chrono-exo">00:00</span></div>
+                <div class="total">⌛ Total : <span id="chrono-total">00:00</span></div>
+            </div>
+            <div style="font-size:0.9rem; color:#888;">
+                <span id="score-text">Score : 0 / 200</span>
+            </div>
+        </div>
+
+        <div class="header-status">
+            <span id="progress-text">Exercice 1 / 50</span>
+        </div>
+        <div class="progress-track">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div class="exercice-box">
+            <div id="consigne" class="consigne"></div>
+            <div id="texte-source" class="texte-source"></div>
+            <div id="reference" class="reference"></div>
+            
+            <textarea id="reponse-input" placeholder="Saisissez votre réécriture ici..."></textarea>
+            <div style="text-align: right; margin-top: 1rem;">
+                <button id="btn-valider" class="btn" onclick="app.validate()">Valider la réponse</button>
+            </div>
+        </div>
+
+        <div id="feedback-box" class="feedback-box">
+            <h3>Correction détaillée</h3>
+            <div id="diff-output" class="diff-text"></div>
+            <p id="score-feedback" style="font-weight: bold; margin-top: 1rem;"></p>
+            <div style="text-align: right; margin-top: 1rem;">
+                <button class="btn btn-accent" onclick="app.next()">Passer à l'exercice suivant</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Écran des résultats -->
+    <div id="screen-result" class="screen">
+        <h1>Évaluation terminée</h1>
+        <h2 id="final-score"></h2>
+        <div id="final-appreciation" style="font-size: 1.2rem; font-weight: bold; margin-top: 1rem;"></div>
+        <button class="btn" onclick="location.reload()" style="margin-top: 2rem;">Recommencer</button>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="footer-credit">Réalisé par C. LAURENCE</div>
+</div>
+
+<script>
+const app = (function() {
+    'use strict';
+
+    // ----- DONNÉES (inchangées) -----
+    const data = [
+        // PARTIE 1 : Genre / Nombre / Personne (15 exercices)
+        { consigne: "Réécrivez cet extrait en remplaçant « Il » par « Ils ».", texte: "Il traversa la place d'un pas rapide. Il entra dans la ruelle sombre. La peur envahissait son esprit.", corr: "Ils traversèrent la place d'un pas rapide. Ils entrèrent dans la ruelle sombre. La peur envahissait leur esprit.", auteur: "Stendhal", oeuvre: "Le Rouge et le Noir" },
+        { consigne: "Réécrivez cet extrait en remplaçant « La jeune fille » par « Les jeunes filles ».", texte: "La jeune fille s'approcha de la fenêtre. Elle écarta le rideau avec hésitation. Son regard se perdit dans la brume.", corr: "Les jeunes filles s'approchèrent de la fenêtre. Elles écartèrent le rideau avec hésitation. Leur regard se perdit dans la brume.", auteur: "Gustave Flaubert", oeuvre: "Madame Bovary" },
+        { consigne: "Réécrivez cet extrait en mettant le sujet au singulier.", texte: "Les ouvriers marchaient en silence sur le pavé. Ils portaient leurs outils sur l'épaule. Leurs visages étaient marqués par la fatigue.", corr: "L'ouvrier marchait en silence sur le pavé. Il portait ses outils sur l'épaule. Son visage était marqué par la fatigue.", auteur: "Émile Zola", oeuvre: "Germinal" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Je » par « Nous ».", texte: "Je me levai de bonne heure ce matin-là. Je préparai mon sac avec soin. Ma décision était enfin prise.", corr: "Nous nous levâmes de bonne heure ce matin-là. Nous préparâmes notre sac avec soin. Notre décision était enfin prise.", auteur: "Marcel Proust", oeuvre: "À la recherche du temps perdu" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Le voyageur » par « Les voyageurs ».", texte: "Le voyageur descendit du train couvert de suie. Il chercha du regard une auberge. Sa valise pesait lourdement à son bras.", corr: "Les voyageurs descendirent du train couverts de suie. Ils cherchèrent du regard une auberge. Leur valise pesait lourdement à leur bras.", auteur: "Jules Verne", oeuvre: "Le Tour du monde en quatre-vingts jours" },
+        { consigne: "Réécrivez cet extrait au féminin.", texte: "Il était le plus courageux de tous les villageois. Il affrontait la tempête sans trembler. Son courage forçait l'admiration.", corr: "Elle était la plus courageuse de toutes les villageoises. Elle affrontait la tempête sans trembler. Son courage forçait l'admiration.", auteur: "Victor Hugo", oeuvre: "Les Travailleurs de la mer" },
+        { consigne: "Réécrivez cet extrait en remplaçant « L'arbre » par « Les arbres ».", texte: "L'arbre dressait sa silhouette noire contre le ciel. Il perdait ses dernières feuilles sous le vent. Sa racine soulevait la vieille pierre.", corr: "Les arbres dressaient leur silhouette noire contre le ciel. Ils perdaient leurs dernières feuilles sous le vent. Leur racine soulevait la vieille pierre.", auteur: "Guy de Maupassant", oeuvre: "Une Vie" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Tu » par « Vous ».", texte: "Tu dois écouter cette histoire avec attention. Tu comprendras alors mon choix. Ton avis m'importe plus que tout.", corr: "Vous devez écouter cette histoire avec attention. Vous comprendrez alors mon choix. Votre avis m'importe plus que tout.", auteur: "Honoré de Balzac", oeuvre: "Le Père Goriot" },
+        { consigne: "Réécrivez cet extrait en mettant tous les sujets au pluriel.", texte: "Le chat glissa sur le toit de zinc. Il s'arrêta près de la cheminée. Son œil jaune fixait la rue.", corr: "Les chats glissèrent sur les toits de zinc. Ils s'arrêtèrent près des cheminées. Leurs yeux jaunes fixaient la rue.", auteur: "Charles Baudelaire", oeuvre: "Le Spleen de Paris" },
+        { consigne: "Réécrivez cet extrait en remplaçant « L'enfant » par « Les enfants ».", texte: "L'enfant courait dans les hautes herbes. Il riait aux éclats sous le soleil. Sa mère l'observait de loin.", corr: "Les enfants couraient dans les hautes herbes. Ils riaient aux éclats sous le soleil. Leur mère les observait de loin.", auteur: "George Sand", oeuvre: "La Mare au diable" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Elle » par « Elles ».", texte: "Elle ferma le livre posé sur la table. Elle soupira longuement. La nuit tombait sur sa solitude.", corr: "Elles fermèrent le livre posé sur la table. Elles soupirèrent longuement. La nuit tombait sur leur solitude.", auteur: "Stendhal", oeuvre: "La Chartreuse de Parme" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Le soldat » par « Les soldats ».", texte: "Le soldat nettoyait son fusil avec application. Il fredonnait un air de son pays. Sa pensée s'évadait loin du front.", corr: "Les soldats nettoyaient leur fusil avec application. Ils fredonnaient un air de leur pays. Leur pensée s'évadait loin du front.", auteur: "Victor Hugo", oeuvre: "Les Misérables" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Le roi » par « La reine ».", texte: "Le roi s'assit sur son trône d'or. Il ordonna que l'on fasse entrer l'ambassadeur. Son visage restait impassible.", corr: "La reine s'assit sur son trône d'or. Elle ordonna que l'on fasse entrer l'ambassadeur. Son visage restait impassible.", auteur: "Alexandre Dumas", oeuvre: "Les Trois Mousquetaires" },
+        { consigne: "Réécrivez cet extrait en remplaçant « L'oiseau » par « Les oiseaux ».", texte: "L'oiseau s'envola brusquement du buisson. Il plana au-dessus du champ de blé. Son chant résonna dans la vallée.", corr: "Les oiseaux s'envolèrent brusquement du buisson. Ils planèrent au-dessus du champ de blé. Leur chant résonna dans la vallée.", auteur: "Alphonse Daudet", oeuvre: "Lettres de mon moulin" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Le bateau » par « Les bateaux ».", texte: "Le bateau quittait le port à l'aube. Il voguait vers l'horizon brumeux. Sa voile claquait sous la brise.", corr: "Les bateaux quittaient le port à l'aube. Ils voguaient vers l'horizon brumeux. Leur voile claquait sous la brise.", auteur: "Guy de Maupassant", oeuvre: "Pierre et Jean" },
+
+        // PARTIE 2 : Temps (15 exercices)
+        { consigne: "Réécrivez cet extrait à l'imparfait de l'indicatif.", texte: "Le soleil se lève derrière la colline. La rosée brille sur les pétales des fleurs. Les premiers passants sortent dans la rue.", corr: "Le soleil se levait derrière la colline. La rosée brillait sur les pétales des fleurs. Les premiers passants sortaient dans la rue.", auteur: "Émile Zola", oeuvre: "La Faute de l'abbé Mouret" },
+        { consigne: "Réécrivez cet extrait au passé simple.", texte: "Il prend son chapeau et ouvre la porte. Il descend l'escalier avec précipitation. La rue l'accueille dans un grand silence.", corr: "Il prit son chapeau et ouvrit la porte. Il descendit l'escalier avec précipitation. La rue l'accueillit dans un grand silence.", auteur: "Honoré de Balzac", oeuvre: "Illusions perdues" },
+        { consigne: "Réécrivez cet extrait au présent de l'indicatif.", texte: "La tempête soufflait avec une violence inouïe. Les vagues se brisaient contre la digue. Les marins redoutaient le pire.", corr: "La tempête souffle avec une violence inouïe. Les vagues se brisent contre la digue. Les marins redoutent le pire.", auteur: "Jules Verne", oeuvre: "Vingt mille lieues sous les mers" },
+        { consigne: "Réécrivez cet extrait au futur simple.", texte: "Je lis ce roman avec passion. Je découvre un monde nouveau à chaque page. L'auteur m'emporte loin de mon quotidien.", corr: "Je lirai ce roman avec passion. Je découvrirai un monde nouveau à chaque page. L'auteur m'emportera loin de mon quotidien.", auteur: "Marcel Proust", oeuvre: "Du côté de chez Swann" },
+        { consigne: "Réécrivez cet extrait au passé composé.", texte: "L'horloge sonne minuit dans la grande salle. Les invités quittent le château. Le silence recouvre le domaine.", corr: "L'horloge a sonné minuit dans la grande salle. Les invités ont quitté le château. Le silence a recouvert le domaine.", auteur: "Alexandre Dumas", oeuvre: "Le Comte de Monte-Cristo" },
+        { consigne: "Réécrivez cet extrait à l'imparfait.", texte: "Elle écrit une longue lettre à sa mère. Elle choisit ses mots avec délicatesse. L'encre sèche lentement sur le papier.", corr: "Elle écrivait une longue lettre à sa mère. Elle choisissait ses mots avec délicatesse. L'encre séchait lentement sur le papier.", auteur: "Gustave Flaubert", oeuvre: "Madame Bovary" },
+        { consigne: "Réécrivez cet extrait au présent.", texte: "Les chevaux galopaient à travers la plaine. Ils soulevaient une épaisse poussière. Leurs cavaliers criaient pour les encourager.", corr: "Les chevaux galopent à travers la plaine. Ils soulèvent une épaisse poussière. Leurs cavaliers crient pour les encourager.", auteur: "Victor Hugo", oeuvre: "Les Misérables" },
+        { consigne: "Réécrivez cet extrait au passé simple.", texte: "Il s'arrête devant la vitrine illuminée. Il observe longuement les objets exposés. Un sourire illumine son visage.", corr: "Il s'arrêta devant la vitrine illuminée. Il observa longuement les objets exposés. Un sourire illumina son visage.", auteur: "Émile Zola", oeuvre: "Au Bonheur des Dames" },
+        { consigne: "Réécrivez cet extrait au futur simple.", texte: "Nous visitons ce musée avec grand intérêt. Nous admirons les toiles des maîtres anciens. Le guide nous explique l'histoire de chaque œuvre.", corr: "Nous visiterons ce musée avec grand intérêt. Nous admirerons les toiles des maîtres anciens. Le guide nous expliquera l'histoire de chaque œuvre.", auteur: "Honoré de Balzac", oeuvre: "La Cousine Bette" },
+        { consigne: "Réécrivez cet extrait à l'imparfait.", texte: "Le feu pétille dans la cheminée. Le vieux chien dort sur le tapis. L'horloge égrène les secondes.", corr: "Le feu pétillait dans la cheminée. Le vieux chien dormait sur le tapis. L'horloge égrenait les secondes.", auteur: "Guy de Maupassant", oeuvre: "Contes de la bécasse" },
+        { consigne: "Réécrivez cet extrait au présent.", texte: "Elle chantait une mélodie douce et triste. Sa voix s'élevait dans l'église vide. Les vitraux filtraient une lumière colorée.", corr: "Elle chante une mélodie douce et triste. Sa voix s'élève dans l'église vide. Les vitraux filtrent une lumière colorée.", auteur: "George Sand", oeuvre: "Consuelo" },
+        { consigne: "Réécrivez cet extrait au passé simple.", texte: "Le vent souffle violemment sur la lande. Il arrache les branches mortes. Il balaie la neige accumulée.", corr: "Le vent souffla violemment sur la lande. Il arracha les branches mortes. Il balaya la neige accumulée.", auteur: "Victor Hugo", oeuvre: "L'Homme qui rit" },
+        { consigne: "Réécrivez cet extrait à l'imparfait.", texte: "Tu fermes les yeux pour mieux réfléchir. Tu cherches la solution à ce problème. L'angoisse te tenaille.", corr: "Tu fermais les yeux pour mieux réfléchir. Tu cherchais la solution à ce problème. L'angoisse te tenaillait.", auteur: "Stendhal", oeuvre: "Le Rouge et le Noir" },
+        { consigne: "Réécrivez cet extrait au conditionnel présent.", texte: "Nous partons dès l'aube. Nous marchons jusqu'au sommet de la montagne. Nous plantons notre tente avant la nuit.", corr: "Nous partirions dès l'aube. Nous marcherions jusqu'au sommet de la montagne. Nous planterions notre tente avant la nuit.", auteur: "Jules Verne", oeuvre: "Voyage au centre de la Terre" },
+        { consigne: "Réécrivez cet extrait au passé composé.", texte: "Ils franchissent la frontière discrètement. Ils évitent les patrouilles armées. Ils arrivent enfin en lieu sûr.", corr: "Ils ont franchi la frontière discrètement. Ils ont évité les patrouilles armées. Ils sont arrivés enfin en lieu sûr.", auteur: "Alexandre Dumas", oeuvre: "Vingt ans après" },
+
+        // PARTIE 3 : Voix Active / Passive (10 exercices)
+        { consigne: "Réécrivez cet extrait à la voix passive.", texte: "L'architecte dessine les plans de la nouvelle église. Le maître-maçon dirige les travaux. Les artisans sculptent les colonnes.", corr: "Les plans de la nouvelle église sont dessinés par l'architecte. Les travaux sont dirigés par le maître-maçon. Les colonnes sont sculptées par les artisans.", auteur: "Victor Hugo", oeuvre: "Notre-Dame de Paris" },
+        { consigne: "Réécrivez cet extrait à la voix active.", texte: "La lettre fut lue par le magistrat. La vérité fut révélée par l'accusé. Le silence fut rompu par les murmures de la foule.", corr: "Le magistrat lut la lettre. L'accusé révéla la vérité. Les murmures de la foule rompirent le silence.", auteur: "Honoré de Balzac", oeuvre: "Le Colonel Chabert" },
+        { consigne: "Réécrivez cet extrait à la voix passive.", texte: "Le vent a emporté les tuiles du toit. L'eau a inondé la cave. La foudre a frappé le vieux chêne.", corr: "Les tuiles du toit ont été emportées par le vent. La cave a été inondée par l'eau. Le vieux chêne a été frappé par la foudre.", auteur: "Émile Zola", oeuvre: "La Terre" },
+        { consigne: "Réécrivez cet extrait à la voix active.", texte: "Le tableau était admiré par les visiteurs. Les détails étaient analysés par les critiques. L'œuvre était protégée par une vitre.", corr: "Les visiteurs admiraient le tableau. Les critiques analysaient les détails. Une vitre protégeait l'œuvre.", auteur: "Marcel Proust", oeuvre: "À l'ombre des jeunes filles en fleurs" },
+        { consigne: "Réécrivez cet extrait à la voix passive.", texte: "Les enfants cueilleront les pommes mûres. La mère préparera une grande tarte. La famille partagera ce dessert.", corr: "Les pommes mûres seront cueillies par les enfants. Une grande tarte sera préparée par la mère. Ce dessert sera partagé par la famille.", auteur: "George Sand", oeuvre: "François le Champi" },
+        { consigne: "Réécrivez cet extrait à la voix active.", texte: "Le navire avait été englouti par l'océan. Les débris étaient portés par les flots. Le drame fut raconté par le seul survivant.", corr: "L'océan avait englouti le navire. Les flots portaient les débris. Le seul survivant raconta le drame.", auteur: "Jules Verne", oeuvre: "Les Enfants du capitaine Grant" },
+        { consigne: "Réécrivez cet extrait à la voix passive.", texte: "Le paysan labourait le champ asséché. Le soleil brûlait la terre. L'espoir soutenait son effort.", corr: "Le champ asséché était labouré par le paysan. La terre était brûlée par le soleil. Son effort était soutenu par l'espoir.", auteur: "Émile Zola", oeuvre: "La Débâcle" },
+        { consigne: "Réécrivez cet extrait à la voix active.", texte: "La porte a été refermée par le gardien. Les clés ont été rangées par le geôlier. L'ordre a été donné par le directeur.", corr: "Le gardien a refermé la porte. Le geôlier a rangé les clés. Le directeur a donné l'ordre.", auteur: "Victor Hugo", oeuvre: "Le Dernier Jour d'un condamné" },
+        { consigne: "Réécrivez cet extrait à la voix passive.", texte: "Le professeur explique la règle difficile. L'élève copie la leçon. Le silence envahit la classe.", corr: "La règle difficile est expliquée par le professeur. La leçon est copiée par l'élève. La classe est envahie par le silence.", auteur: "Alphonse Daudet", oeuvre: "Le Petit Chose" },
+        { consigne: "Réécrivez cet extrait à la voix active.", texte: "La robe fut brodée par la couturière. Les perles furent fixées par l'apprentie. Le vêtement fut livré par le coursier.", corr: "La couturière broda la robe. L'apprentie fixa les perles. Le coursier livra le vêtement.", auteur: "Gustave Flaubert", oeuvre: "L'Éducation sentimentale" },
+
+        // PARTIE 4 : Combiné (Temps + Personne) (10 exercices)
+        { consigne: "Réécrivez cet extrait en remplaçant « Il » par « Ils » et en mettant les verbes au futur simple.", texte: "Il descend l'avenue sous la pluie. Il cherche un abri de fortune. Il frissonne de froid.", corr: "Ils descendront l'avenue sous la pluie. Ils chercheront un abri de fortune. Ils frissonneront de froid.", auteur: "Guy de Maupassant", oeuvre: "Bel-Ami" },
+        { consigne: "Réécrivez cet extrait en mettant le sujet au singulier et les verbes à l'imparfait.", texte: "Les loups hurlent dans la forêt profonde. Ils guettent leur proie dans l'ombre. Leurs yeux brillent cruellement.", corr: "Le loup hurlait dans la forêt profonde. Il guettait sa proie dans l'ombre. Ses yeux brillaient cruellement.", auteur: "Alfred de Vigny", oeuvre: "Les Destinées" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Je » par « Nous » et les verbes au passé composé.", texte: "Je lis attentivement ce vieux manuscrit. Je découvre des secrets oubliés. Je referme le livre avec émotion.", corr: "Nous avons lu attentivement ce vieux manuscrit. Nous avons découvert des secrets oubliés. Nous avons refermé le livre avec émotion.", auteur: "Charles Nodier", oeuvre: "La Fée aux Miettes" },
+        { consigne: "Réécrivez cet extrait au pluriel et au passé simple.", texte: "Le cavalier monte sur son cheval. Il éperonne sa monture. Il disparaît dans la nuit noire.", corr: "Les cavaliers montèrent sur leurs chevaux. Ils éperonnèrent leurs montures. Ils disparurent dans la nuit noire.", auteur: "Alexandre Dumas", oeuvre: "La Reine Margot" },
+        { consigne: "Réécrivez cet extrait en remplaçant « La femme » par « Les femmes » et les verbes au présent.", texte: "La femme attendait sur le quai de la gare. Elle serrait son manteau contre elle. Elle espérait un signe de la main.", corr: "Les femmes attendent sur le quai de la gare. Elles serrent leur manteau contre elles. Elles espèrent un signe de la main.", auteur: "Émile Zola", oeuvre: "La Bête humaine" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Tu » par « Vous » et les verbes à l'imparfait.", texte: "Tu regardes l'horizon avec mélancolie. Tu penses à tes amis lointains. Tu essuies une larme discrète.", corr: "Vous regardiez l'horizon avec mélancolie. Vous pensiez à vos amis lointains. Vous essuyiez une larme discrète.", auteur: "Honoré de Balzac", oeuvre: "Le Lys dans la vallée" },
+        { consigne: "Réécrivez cet extrait au singulier et au futur simple.", texte: "Les marchands vendaient leurs étoffes sur la place. Ils vantaient la qualité de leurs tissus. Ils attiraient la foule curieuse.", corr: "Le marchand vendra ses étoffes sur la place. Il vantera la qualité de ses tissus. Il attirera la foule curieuse.", auteur: "Victor Hugo", oeuvre: "Notre-Dame de Paris" },
+        { consigne: "Réécrivez cet extrait en remplaçant « L'étudiant » par « Les étudiants » et les verbes au passé simple.", texte: "L'étudiant ouvre son cahier avec résignation. Il copie la longue formule mathématique. Il soupire devant la difficulté.", corr: "Les étudiants ouvrirent leur cahier avec résignation. Ils copièrent la longue formule mathématique. Ils soupirèrent devant la difficulté.", auteur: "Gustave Flaubert", oeuvre: "Bouvard et Pécuchet" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Elle » par « Elles » et les verbes au conditionnel présent.", texte: "Elle achète ce tableau magnifique. Elle l'accroche dans son salon. Elle l'admire chaque matin.", corr: "Elles achèteraient ce tableau magnifique. Elles l'accrocheraient dans leur salon. Elles l'admireraient chaque matin.", auteur: "Marcel Proust", oeuvre: "La Prisonnière" },
+        { consigne: "Réécrivez cet extrait en remplaçant « Nous » par « Je » et les verbes à l'imparfait.", texte: "Nous escaladons la paroi rocheuse. Nous risquons notre vie à chaque pas. Nous atteignons enfin le sommet enneigé.", corr: "J'escaladais la paroi rocheuse. Je risquais ma vie à chaque pas. J'atteignais enfin le sommet enneigé.", auteur: "Jules Verne", oeuvre: "Cinq semaines en ballon" }
+    ];
+
+    // ----- ÉTAT -----
+    let currentIndex = 0;
+    let totalScore = 0;
+
+    // Chronomètres
+    let chronoExoSeconds = 0;
+    let chronoTotalSeconds = 0;
+    let chronoExoInterval = null;
+    let chronoTotalInterval = null;
+
+    const DOM = {
+        screens: {
+            intro: document.getElementById('screen-intro'),
+            exercise: document.getElementById('screen-exercise'),
+            result: document.getElementById('screen-result')
+        },
+        progressText: document.getElementById('progress-text'),
+        scoreText: document.getElementById('score-text'),
+        progressFill: document.getElementById('progress-fill'),
+        consigne: document.getElementById('consigne'),
+        texteSource: document.getElementById('texte-source'),
+        reference: document.getElementById('reference'),
+        input: document.getElementById('reponse-input'),
+        btnValider: document.getElementById('btn-valider'),
+        feedbackBox: document.getElementById('feedback-box'),
+        diffOutput: document.getElementById('diff-output'),
+        scoreFeedback: document.getElementById('score-feedback'),
+        finalScore: document.getElementById('final-score'),
+        finalAppreciation: document.getElementById('final-appreciation'),
+        chronoExo: document.getElementById('chrono-exo'),
+        chronoTotal: document.getElementById('chrono-total')
+    };
+
+    // ----- UTILITAIRES -----
+    function showScreen(screenName) {
+        Object.values(DOM.screens).forEach(s => s.classList.remove('active'));
+        DOM.screens[screenName].classList.add('active');
+    }
+
+    function normalizeText(text) {
+        return text.trim().replace(/\s+/g, ' ');
+    }
+
+    function formatTime(seconds) {
+        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    // ----- CHRONOMÈTRES -----
+    function startChronos() {
+        // Chrono total
+        if (chronoTotalInterval) clearInterval(chronoTotalInterval);
+        chronoTotalSeconds = 0;
+        DOM.chronoTotal.textContent = formatTime(0);
+        chronoTotalInterval = setInterval(() => {
+            chronoTotalSeconds++;
+            DOM.chronoTotal.textContent = formatTime(chronoTotalSeconds);
+        }, 1000);
+
+        // Chrono exercice
+        startChronoExo();
+    }
+
+    function startChronoExo() {
+        if (chronoExoInterval) clearInterval(chronoExoInterval);
+        chronoExoSeconds = 0;
+        DOM.chronoExo.textContent = formatTime(0);
+        chronoExoInterval = setInterval(() => {
+            chronoExoSeconds++;
+            DOM.chronoExo.textContent = formatTime(chronoExoSeconds);
+        }, 1000);
+    }
+
+    function stopChronos() {
+        if (chronoExoInterval) {
+            clearInterval(chronoExoInterval);
+            chronoExoInterval = null;
+        }
+        if (chronoTotalInterval) {
+            clearInterval(chronoTotalInterval);
+            chronoTotalInterval = null;
+        }
+    }
+
+    // ----- EXERCICES -----
+    function loadExercise() {
+        const exo = data[currentIndex];
+        DOM.progressText.textContent = `Exercice ${currentIndex + 1} / ${data.length}`;
+        DOM.scoreText.textContent = `Score : ${totalScore} / 200`;
+        DOM.progressFill.style.width = `${((currentIndex) / data.length) * 100}%`;
+        
+        DOM.consigne.textContent = exo.consigne;
+        DOM.texteSource.textContent = exo.texte;
+        DOM.reference.textContent = `— ${exo.auteur}, ${exo.oeuvre}`;
+        
+        DOM.input.value = "";
+        DOM.input.disabled = false;
+        DOM.btnValider.style.display = "inline-block";
+        DOM.feedbackBox.style.display = "none";
+        DOM.input.focus();
+
+        // Réinitialiser le chrono de l'exercice
+        startChronoExo();
+    }
+
+    function generateDiff(expected, actual) {
+        const expectedWords = expected.split(' ');
+        const actualWords = actual.split(' ');
+        
+        let html = "";
+        let errCount = 0;
+        let maxLength = Math.max(expectedWords.length, actualWords.length);
+
+        for (let i = 0; i < maxLength; i++) {
+            let e = expectedWords[i] || "";
+            let a = actualWords[i] || "";
+            
+            if (e === a) {
+                html += e + " ";
+            } else {
+                errCount++;
+                if (a) html += `<span class="diff-removed">${a}</span> `;
+                if (e) html += `<span class="diff-added">${e}</span> `;
+            }
+        }
+        return { html: html.trim(), errCount };
+    }
+
+    // ----- API PUBLIQUE -----
+    return {
+        start: function() {
+            currentIndex = 0;
+            totalScore = 0;
+            showScreen('exercise');
+            startChronos();
+            loadExercise();
+        },
+        validate: function() {
+            const reponseUser = normalizeText(DOM.input.value);
+            const reponseAttendue = normalizeText(data[currentIndex].corr);
+            
+            const diffResult = generateDiff(reponseAttendue, reponseUser);
+            let pointsEarned = 4;
+
+            if (reponseUser === "") {
+                pointsEarned = 0;
+            } else if (reponseUser !== reponseAttendue) {
+                // Compte les mots erronés (pénalité progressive)
+                pointsEarned = Math.max(0, 4 - (diffResult.errCount * 0.5));
+            }
+
+            totalScore += pointsEarned;
+            
+            DOM.input.disabled = true;
+            DOM.btnValider.style.display = "none";
+            DOM.feedbackBox.style.display = "block";
+            
+            DOM.diffOutput.innerHTML = `<strong>Votre correction :</strong><br>${diffResult.html}`;
+            DOM.scoreFeedback.textContent = `Points obtenus : ${pointsEarned} / 4`;
+            
+            DOM.scoreText.textContent = `Score : ${totalScore} / 200`;
+            DOM.progressFill.style.width = `${((currentIndex + 1) / data.length) * 100}%`;
+
+            // Arrêter le chrono de l'exercice (il sera réinitialisé au suivant)
+            if (chronoExoInterval) {
+                clearInterval(chronoExoInterval);
+                chronoExoInterval = null;
+            }
+        },
+        next: function() {
+            currentIndex++;
+            if (currentIndex < data.length) {
+                loadExercise();
+            } else {
+                stopChronos();
+                const noteSur20 = totalScore / 10;
+                DOM.finalScore.textContent = `Score final : ${totalScore} / 200`;
+                
+                let appreciation = "";
+                let color = "";
+                if (noteSur20 >= 16) {
+                    appreciation = "Très bonne maîtrise";
+                    color = "#27ae60";
+                } else if (noteSur20 >= 12) {
+                    appreciation = "Maîtrise satisfaisante";
+                    color = "#2ecc71";
+                } else if (noteSur20 >= 8) {
+                    appreciation = "Maîtrise fragile";
+                    color = "#f1c40f";
+                } else {
+                    appreciation = "Maîtrise insuffisante";
+                    color = "#e74c3c";
+                }
+                DOM.finalAppreciation.innerHTML = `Note estimée : ${noteSur20}/20<br><br>
+                    <span class="pastille" style="background-color: ${color};"></span>
+                    <span>${appreciation}</span>`;
+                showScreen('result');
+            }
+        }
+    };
+})();
+</script>
+</body>
+</html>
